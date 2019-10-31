@@ -10,6 +10,8 @@
 
 #include "Includes/doktarApi.h"
 
+#ifdef DOKTAR_API_USE_OV5642
+
 
 
 #define OV5642_320x240 		0	//320x240
@@ -36,4 +38,5 @@ bool Camera_Test_SSCB_Bus(uint16_t chip_id_high_addr, uint16_t chip_id_low_addr)
  */
 void OV5642_Set_JPEG_Size(uint8_t size);
 
+#endif
 #endif /* HL_DRIVERS_CAMERA_SENSORS_OV5642_OV5642_H_ */

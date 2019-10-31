@@ -1,34 +1,40 @@
-/*
- * sscb_bus.c
- *
- *  Created on: Oct 29, 2019
- *      Author: fullstackcoder
+/**
+ * @file sscb_bus.c
+ * @author muratdemirtas@doktar.com
  */
 
 #include "sscb_bus.h"
-
+#ifdef DOKTAR_API_USE_SSCB
 /**
- *
- * @param regID
- * @param regDat
- * @return
+ * This function will help you for setting register values on camera sensor
+ * @param address Target camera sscb bus device address
+ * @param regID Target camera sensor register address
+ * @param regDat Target camera sensor register value
+ * @return is SSCB bus communication is ok?
  */
-bool SSCB_wrSensorReg16_8(uint16_t regID, uint16_t regDat)
+bool SSCB_wrSensorReg16_8(uint16_t address, uint16_t regID, uint16_t regDat)
 {
 	uint8_t tx_buffer[3];
 	tx_buffer[0] = regID>>8;
 	tx_buffer[1] = (uint8_t)regID;
 	tx_buffer[2] = (uint8_t)regDat;
 
-	if(HAL_I2C_Master_Transmit(&hi2c1, 0x78, (uint8_t*)tx_buffer, 3, 100) != HAL_OK)
+#if API_SSCB_AS_I2C
+	if(HAL_I2C_Master_Transmit(SSCB_I2C_BUS, address,
+								(uint8_t*)tx_buffer, sizeof(tx_buffer), SSCB_TIMEOUT) != HAL_OK)
 		return false;
-	HAL_Delay(1);
+	SSCB_DELAY_MS(1);
+#else
+	#error not implemented bitbanging gpio module
+#endif
+
 	return true;
 }
 /**
- *
- * @param reglist
- * @return
+ * This function will send all sensor camera settings struct's to camera sensor over
+ * I2C or SSCB bus
+ * @param reglist target camera settings struct
+ * @return I2C or SSCB bus error size
  */
 int SSCB_wrSensorRegs16_8(const struct sensor_reg reglist[])
 {
@@ -46,29 +52,41 @@ int SSCB_wrSensorRegs16_8(const struct sensor_reg reglist[])
     if(reg_addr == 0xffff)
     	break;
 
-    err = SSCB_wrSensorReg16_8(reg_addr, reg_val);
+    err = SSCB_wrSensorReg16_8(OV5642_CHIP_SSCB_BUS_ADDR_W, reg_addr, reg_val);
     next++;
   }
   return err;
 }
 /**
- *
- * @param regID
- * @param regDat
- * @return
+ * This function will help you for reading register values on camera sensor
+ * @param address Target camera sscb bus device address
+ * @param regID Target camera sensor register address
+ * @param regDat Target camera sensor register value
+ * @return is SSCB bus communication is ok?
  */
-bool SSCB_rdSensorReg16_8(uint16_t regID, uint8_t* regDat)
+bool SSCB_rdSensorReg16_8(uint16_t address, uint16_t regID, uint8_t* regDat)
 {
 
 	uint8_t tx_buffer[2];
 	tx_buffer[0] = regID>>8;
 	tx_buffer[1] = (uint8_t)regID;
+	uint16_t rw_address = address;
 
-	if(HAL_I2C_Master_Transmit(&hi2c1, 0x78, (uint8_t*)tx_buffer, 2, 100) != HAL_OK)
+#if API_SSCB_AS_I2C
+
+	if(HAL_I2C_Master_Transmit(SSCB_I2C_BUS, rw_address, (uint8_t*)tx_buffer, sizeof(tx_buffer), SSCB_TIMEOUT) != HAL_OK)
 		return false;
 
-	if(HAL_I2C_Master_Receive(&hi2c1, 0x79, (uint8_t*)regDat, 1, 100) != HAL_OK)
+	rw_address = rw_address + 1;
+
+	if(HAL_I2C_Master_Receive(SSCB_I2C_BUS, rw_address, (uint8_t*)regDat, sizeof(tx_buffer) - 1,  SSCB_TIMEOUT) != HAL_OK)
 	  return false;
+
+	SSCB_DELAY_MS(1);
+#else
+	#error not implemented bitbanging gpio module
+#endif
 
 	return true;
 }
+#endif

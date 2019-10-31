@@ -1,13 +1,11 @@
-/*
- * ov5642.c
- *
- *  Created on: Oct 29, 2019
- *      Author: fullstackcoder
+/**
+ * @file ov5642.c
+ * @author murat.demirtas@doktar.com
  */
 
-#include <HL_Drivers/Camera/sensors/OV5642/ov5642_regs.c>
 #include "ov5642.h"
-#include "HL_Drivers/Camera/sensors/sscb_bus.h"
+
+#ifdef DOKTAR_API_USE_OV5642
 
 /**
  * This function will test camera communication over sscb or I2C bus. Some
@@ -22,8 +20,8 @@ bool Camera_Test_SSCB_Bus(uint16_t chip_id_high_addr, uint16_t chip_id_low_addr)
 	/* read test over sscb bus*/
 	for(uint8_t i = 0; i < 5; i++)
 	{
-		SSCB_rdSensorReg16_8(chip_id_high_addr, &vid_val);
-		SSCB_rdSensorReg16_8(chip_id_low_addr, &pid_val);
+		SSCB_rdSensorReg16_8(OV5642_CHIP_SSCB_BUS_ADDR_W, chip_id_high_addr, &vid_val);
+		SSCB_rdSensorReg16_8(OV5642_CHIP_SSCB_BUS_ADDR_W, chip_id_low_addr, &pid_val);
 		if ((vid_val != 0x56) || (pid_val != 0x42))
 			test_fail++;
 		else
@@ -70,3 +68,4 @@ void OV5642_Set_JPEG_Size(uint8_t size)
       break;
   }
 }
+#endif

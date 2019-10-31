@@ -1,7 +1,8 @@
-#ifndef OV5642_REGS_H
-#define OV5642_REGS_H
+#ifndef _OV5642_CAMERA_CONFIG
+#define _OV5642_CAMERA_CONFIG
+#include "Includes/doktarApiConfig.h"
 
-#include "HL_Drivers/Camera/sensors/sscb_bus.h"
+#ifdef DOKTAR_API_USE_OV5642
 
 static const struct sensor_reg ov5642_320x240[]  =
 {
@@ -935,7 +936,7 @@ static const struct sensor_reg OV5642_JPEG_Capture_QSXGA[]  =
 };
 
 
-
-
 #endif
+#endif
+
 
